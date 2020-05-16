@@ -50,7 +50,7 @@ label {
 .contacts,
 .main-title,
 .arrow {
-  color: #3cb371;
+  color: #3cb371 !important;
   -webkit-text-stroke-width: 2px;
   -webkit-text-stroke-color: black;
 }
@@ -107,4 +107,19 @@ label {
   color: #e0ffff !important;
   -webkit-text-stroke-width: 2px;
   -webkit-text-stroke-color: black;
+}
+
+.burger {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.burger span {
+  width: 30px;
+  height: 3px;
+  display: block;
+  background-color: #3cb371;
 }
