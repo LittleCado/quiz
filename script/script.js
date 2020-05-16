@@ -146,11 +146,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // event listeners without addEventListener because on each open of modal creates one more listener
     prevBtn.onclick = () => {
-      questionNumber--;
+      if (questionNumber - 1 <= 0) {
+        questionNumber--;
+        prevBtn.classList.add("d-none");
+      } else {
+        questionNumber--;
+      }
       renderQuestion(questionNumber);
     };
 
     nextBtn.onclick = () => {
+      if (questionNumber >= 0) {
+        prevBtn.classList.remove("d-none");
+      }
       questionNumber++;
       renderQuestion(questionNumber);
     };
