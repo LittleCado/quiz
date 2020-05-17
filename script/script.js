@@ -7,7 +7,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const formAnswers = document.querySelector("#formAnswers");
   const prevBtn = document.querySelector("#prev");
   const nextBtn = document.querySelector("#next");
+  const sendBtn = document.querySelector("#send");
 
+  // Block with questions
   const questions = [
     {
       question: "Какого цвета бургер?",
@@ -84,6 +86,8 @@ document.addEventListener("DOMContentLoaded", function () {
   ];
 
   // Event listeners
+
+  // Button witch opens/close modal block
   btnOpenModal.addEventListener("click", () => {
     modalBlock.classList.remove("hide");
     // render question and answer
@@ -94,6 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
     modalBlock.classList.add("hide");
   });
 
+  // when click not on modal close modal
   document.addEventListener("click", (event) => {
     if (
       !event.target.closest(".modal-dialog") &&
@@ -109,7 +114,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // renderQuestion function render question title and runs renderAnswers function
   // renderAnswer function render as many answers as there are in array questions[i].answers
   const renderQA = () => {
+    // Number of question
     let questionNumber = 0;
+    const finalAnswers = [];
 
     const renderAnswers = (qNumber) => {
       questions[qNumber].answers.forEach((answer, index) => {
@@ -122,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
         answerItem.innerHTML = `
-        <input type="${questions[qNumber].type}" id="answerItem${index}" name="answer" class="d-none">
+        <input type="${questions[qNumber].type}" id="answerItem${index}" name="answer" class="d-none" value="${answer.title}">
           <label for="answerItem${index}" class="d-flex flex-column justify-content-between">
             <img class="answerImg" src="${answer.url}" alt="burger">
             <span>${answer.title}</span>
@@ -134,33 +141,85 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     const renderQuestion = (qNumber) => {
-      // when modal opens need to clean question and answers inside
+      // When modal opens need to clean answers inside
       formAnswers.innerHTML = "";
 
-      // Question on card
-      questionTitle.textContent = questions[qNumber].question;
-      renderAnswers(qNumber);
+      // check if we try to render question that we havent in object with questionss
+      if (questionNumber >= 0 && questionNumber <= questions.length - 1) {
+        // Question on modal
+        questionTitle.textContent = questions[qNumber].question;
+        renderAnswers(qNumber);
+
+        prevBtn.classList.remove("d-none");
+        nextBtn.classList.remove("d-none");
+        sendBtn.classList.add("d-none");
+      }
+
+      if (questionNumber === 0) {
+        prevBtn.classList.add("d-none");
+      }
+
+      if (questionNumber === questions.length) {
+        questionTitle.innerHTML = "";
+        formAnswers.innerHTML = `
+        <div class="form-group">
+          <label for="phoneNumber">Введите ваш номер телефона</label>
+          <input type="phone" class="form-control" id="phoneNumber" placeholder="Номер телефона">
+        </div>
+        `;
+
+        nextBtn.classList.add("d-none");
+        sendBtn.classList.remove("d-none");
+      }
+
+      if (questionNumber === questions.length + 1) {
+        questionTitle.innerHTML =
+          "Спасибо, менеджер свяжется с вами через 5 мин";
+        // automatically close modal after 2 sec
+        setTimeout(() => {
+          modalBlock.classList.add("hide");
+        }, 2000);
+      }
     };
 
     renderQuestion(questionNumber);
 
+    const checkAnswer = () => {
+      const obj = {};
+      const inputs = [...formAnswers.elements].filter(
+        (input) => input.checked || input.id === "phoneNumber"
+      );
+
+      inputs.forEach((input, index) => {
+        if (questionNumber >= 0 && questionNumber <= questions.length - 1) {
+          obj[`${index}_${questions[questionNumber].question}`] = input.value;
+        }
+
+        if (questionNumber == questions.length) {
+          obj["Номер телефона"] = input.value;
+        }
+      });
+
+      finalAnswers.push(obj);
+    };
+
     // event listeners without addEventListener because on each open of modal creates one more listener
     prevBtn.onclick = () => {
-      if (questionNumber - 1 <= 0) {
-        questionNumber--;
-        prevBtn.classList.add("d-none");
-      } else {
-        questionNumber--;
-      }
+      questionNumber--;
       renderQuestion(questionNumber);
     };
 
     nextBtn.onclick = () => {
-      if (questionNumber >= 0) {
-        prevBtn.classList.remove("d-none");
-      }
+      checkAnswer();
       questionNumber++;
       renderQuestion(questionNumber);
+    };
+
+    sendBtn.onclick = () => {
+      checkAnswer();
+      questionNumber++;
+      renderQuestion(questionNumber);
+      console.log(finalAnswers);
     };
   };
 });
