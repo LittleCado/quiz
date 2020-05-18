@@ -9,89 +9,39 @@ document.addEventListener("DOMContentLoaded", function () {
   const nextBtn = document.querySelector("#next");
   const sendBtn = document.querySelector("#send");
 
-  // Block with questions
-  const questions = [
-    {
-      question: "Какого цвета бургер?",
-      answers: [
-        {
-          title: "Стандарт",
-          url: "./image/burger.png",
-        },
-        {
-          title: "Черный",
-          url: "./image/burgerBlack.png",
-        },
-      ],
-      type: "radio",
-    },
-    {
-      question: "Из какого мяса котлета?",
-      answers: [
-        {
-          title: "Курица",
-          url: "./image/chickenMeat.png",
-        },
-        {
-          title: "Говядина",
-          url: "./image/beefMeat.png",
-        },
-        {
-          title: "Свинина",
-          url: "./image/porkMeat.png",
-        },
-      ],
-      type: "radio",
-    },
-    {
-      question: "Дополнительные ингредиенты?",
-      answers: [
-        {
-          title: "Помидор",
-          url: "./image/tomato.png",
-        },
-        {
-          title: "Огурец",
-          url: "./image/cucumber.png",
-        },
-        {
-          title: "Салат",
-          url: "./image/salad.png",
-        },
-        {
-          title: "Лук",
-          url: "./image/onion.png",
-        },
-      ],
-      type: "checkbox",
-    },
-    {
-      question: "Добавить соус?",
-      answers: [
-        {
-          title: "Чесночный",
-          url: "./image/sauce1.png",
-        },
-        {
-          title: "Томатный",
-          url: "./image/sauce2.png",
-        },
-        {
-          title: "Горчичный",
-          url: "./image/sauce3.png",
-        },
-      ],
-      type: "radio",
-    },
-  ];
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBarOz1nZqBiCoF3ou2z-SkMCrJgG9fa54",
+    authDomain: "testburger-cc84a.firebaseapp.com",
+    databaseURL: "https://testburger-cc84a.firebaseio.com",
+    projectId: "testburger-cc84a",
+    storageBucket: "testburger-cc84a.appspot.com",
+    messagingSenderId: "628167026769",
+    appId: "1:628167026769:web:0924aa72f1ee500bb47070",
+    measurementId: "G-9BZBPX5ZNF",
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  const getData = () => {
+    formAnswers.textContent = "LOADING";
+    nextBtn.classList.add("d-none");
+    prevBtn.classList.add("d-none");
+
+    firebase
+      .database()
+      .ref()
+      .child("questions")
+      .once("value")
+      .then((snap) => renderQA(snap.val()));
+  };
 
   // Event listeners
-
   // Button witch opens/close modal block
   btnOpenModal.addEventListener("click", () => {
     modalBlock.classList.remove("hide");
     // render question and answer
-    renderQA();
+    getData();
   });
 
   closeModal.addEventListener("click", () => {
@@ -113,10 +63,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // renderQA renders question and answer by running renderQuestion function and renderAnswers
   // renderQuestion function render question title and runs renderAnswers function
   // renderAnswer function render as many answers as there are in array questions[i].answers
-  const renderQA = () => {
+  const renderQA = (questions) => {
     // Number of question
     let questionNumber = 0;
     const finalAnswers = [];
+    const obj = {};
 
     const renderAnswers = (qNumber) => {
       questions[qNumber].answers.forEach((answer, index) => {
@@ -170,11 +121,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         nextBtn.classList.add("d-none");
         sendBtn.classList.remove("d-none");
+
+        //input only numbers
+        const phoneNumber = document.getElementById("phoneNumber");
+        phoneNumber.addEventListener("input", (event) => {
+          event.target.value = event.target.value.replace(/[^0-9+()-]/, "");
+        });
       }
 
       if (questionNumber === questions.length + 1) {
         questionTitle.innerHTML =
           "Спасибо, менеджер свяжется с вами через 5 мин";
+        sendBtn.classList.add("d-none");
+
+        // move info to finalAnswers
+        for (let key in obj) {
+          let newObj = {};
+          newObj[key] = obj[key];
+          finalAnswers.push(newObj);
+        }
+
         // automatically close modal after 2 sec
         setTimeout(() => {
           modalBlock.classList.add("hide");
@@ -185,7 +151,6 @@ document.addEventListener("DOMContentLoaded", function () {
     renderQuestion(questionNumber);
 
     const checkAnswer = () => {
-      const obj = {};
       const inputs = [...formAnswers.elements].filter(
         (input) => input.checked || input.id === "phoneNumber"
       );
@@ -200,7 +165,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      finalAnswers.push(obj);
+      // finalAnswers.push(obj);
     };
 
     // event listeners without addEventListener because on each open of modal creates one more listener
@@ -219,6 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
       checkAnswer();
       questionNumber++;
       renderQuestion(questionNumber);
+      firebase.database().ref().child("contacts").push(finalAnswers);
       console.log(finalAnswers);
     };
   };
